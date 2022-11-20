@@ -3,7 +3,7 @@ import time
 
 
 if __name__ == '__main__':
-    with open('notinservice.hex', 'w') as f:
+    with open('rickroll.hex', 'w') as f:
         ser = serial.Serial('/dev/tty.usbmodem14101', 115200)
         while True:
             line = ser.readline()
