@@ -3,23 +3,24 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     gain_list = []
-    gain = 1
+    syllabic_gain = 0
+    min_step = 20
     for i in range(0, 500):
         modulo = i % 10
         if modulo == 1 or modulo == 4 or modulo == 7:
             #if gain < 15:
-            gain += 0.7
+            syllabic_gain += 320
             # elif gain < 18:
             #     gain += 0.25
             # elif gain < 20:
             #     gain += 0.1
-        if gain > 1:
-            gain /= 1.01033
-        gain_list.append(gain)
+        syllabic_gain *= 0.9937694
+        slope = min_step + syllabic_gain/4
+        gain_list.append(slope)
 
     for i in range(0, 500):
-        if gain > 1:
-            gain /= 1.01033
-        gain_list.append(gain)
-    plt.plot(range(0,1000), gain_list)
+        syllabic_gain *= 0.9937694
+        slope = min_step + syllabic_gain / 4
+        gain_list.append(slope)
+    plt.plot(range(0, 1000), gain_list)
     plt.show()

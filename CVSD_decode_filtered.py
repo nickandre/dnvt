@@ -130,9 +130,9 @@ def dnvt_to_pcm(data):
 
 
 if __name__ == '__main__':
-    with open('FDAA10255E.txt', 'r') as f: #FDAA10255E
+    with open('notinservice.hex', 'r') as f: #FDAA10255E
         data = f.read()
-    with wave.open('tone_test.wav', 'wb') as f:
+    with wave.open('notinservice-rc4-filt.wav', 'wb') as f:
         f.setsampwidth(2)
         f.setnchannels(1)
         f.setframerate(32000)

@@ -6,7 +6,7 @@ from scipy.fft import fft, fftfreq
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 
-SCALE = 400
+SCALE = 250
 LINEAR_THRESHOLD = 0.8
 SECOND_THRESHOLD = 0.9
 MAX_GAIN = 20
@@ -60,6 +60,10 @@ def dnvt_to_pcm(data, file):
             gain *= 0.9875778
             # The de-emphasis IIR filter implemented here is:
             # H(z) = 1 / (1 - az^-1) for 0.92 < a < 0.98
+            # Y/X = 1/ (1 - az^-1)
+            # Y(1 - az^-1) = X
+            # y[n] - ay[n-1] = x[n]
+            # y[n] = x[n] + ay[n-1]
             a = 0.90
             filtered_val = (current_value + previous_filtered * a) / 2 # + prev2_val * 0.33
             previous_filtered = filtered_val
@@ -94,9 +98,9 @@ def dnvt_to_pcm(data, file):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    with open('notinservice.hex', 'r') as f:
+    with open('rick-c.hex', 'r') as f:
         data = f.read()
-    with wave.open('notinservice-iir.wav', 'wb') as f:
+    with wave.open('rick-e2e-e.wav', 'wb') as f:
         f.setsampwidth(2)
         f.setnchannels(1)
         f.setframerate(32000)
