@@ -1,10 +1,12 @@
-# This is a sample Python script.
+# 32 kbps CVSD Decoder for Digital Non-secure Voice Terminals with IIR Filtering
+# 
+# Nick Andre and Robert Ruark
+# 2023
+
 import wave
 
 from scipy import signal
 from scipy.fft import fft, fftfreq
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 
 SCALE = 250
 LINEAR_THRESHOLD = 0.8
@@ -92,19 +94,11 @@ def dnvt_to_pcm(data, file):
     # plt.plot(xf, np.abs(yf))
     # plt.show()
 
-
-
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    with open('rick-c.hex', 'r') as f:
+    with open('cvsd_data/genesis_reencoded.hex', 'r') as f:
         data = f.read()
-    with wave.open('rick-e2e-e.wav', 'wb') as f:
+    with wave.open('wav_data/genesis_redecoded.wav', 'wb') as f:
         f.setsampwidth(2)
         f.setnchannels(1)
         f.setframerate(32000)
         dnvt_to_pcm(data, f)
-
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

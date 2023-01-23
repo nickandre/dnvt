@@ -1,10 +1,18 @@
-# This is a sample Python script.
+# 32 kbps CVSD Encoder for Digital Non-secure Voice Terminals
+# 
+# Nick Andre and Robert Ruark
+# 2023
+
 import wave
 
 from scipy import signal
 from scipy.fft import fft, fftfreq
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+import matplotlib.pyplot as plt
+import numpy as np
+import sys
+
+#Set high to enable debug graphs
+GRAPH_DEBUG = 0
 
 SCALE = 250
 LINEAR_THRESHOLD = 0.8
@@ -22,18 +30,26 @@ def pcm_to_dnvt(input, output):
     coincidences = 0
     sample = 0
     frames = input.getnframes()
+    index = 0
+    time                   = []
+    graph_pcm_value        = []
+    graph_filtered_pcm_val = []
+    graph_cvsd_val         = []
+    graph_gain             = []
+    graph_bits             = []
     max_frames = 500000
     previous_pcm = 0
-    for i in range(max_frames):
+    for i in range(frames):
         #TODO: burn first byte
-        bit_index = 7 - (i % 8)
+        bit_index = 3 - (i % 4)
         frame = input.readframes(1)
         pcm_value = int.from_bytes(frame, 'little', signed=True)
         # Y/X = 1 - a*z^-1
         # Y = X - Xaz^-1
         # y[n] = x[n] - ax[n-1]
-        a = 0.90
-        filtered_pcm_val = (pcm_value - previous_pcm * a)  # + prev2_val * 0.33
+        a = 0.0 # Emphesis disabled
+        b = 1.0 # Emphesis disabled
+        filtered_pcm_val = b*(pcm_value - previous_pcm * a)  # + prev2_val * 0.33
         previous_pcm = pcm_value
         if filtered_pcm_val >= current_value:
             current_bit = 1
@@ -71,6 +87,13 @@ def pcm_to_dnvt(input, output):
             #output.write(sample.to_bytes(1, 'little'))
             output.write(f'{sample:x}')
             sample = 0
+        index+=1 #time index
+        time.append(index/32000)
+        graph_pcm_value.append(pcm_value)
+        graph_filtered_pcm_val.append(filtered_pcm_val)
+        graph_cvsd_val.append(current_value)
+        graph_gain.append(gain)
+        graph_bits.append(current_bit)
 
         # tODO: The de-emphasis IIR filter implemented here is:
         # H(z) = 1 / (1 - az^-1) for 0.92 < a < 0.98
@@ -102,15 +125,20 @@ def pcm_to_dnvt(input, output):
     # plt.plot(xf, np.abs(yf))
     # plt.show()
 
+    if(GRAPH_DEBUG):
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, constrained_layout=True, sharex=True)
+        ax1.plot(time, graph_gain)
+        ax2.plot(time, graph_cvsd_val, time, graph_pcm_value, time, graph_filtered_pcm_val)
+        ax3.step(time, graph_bits, 'o--')
+        plt.ylabel('Counts')
+        plt.xlabel('Time (seconds)')
+        ax1.set_title('Gain')
+        ax2.set_title('Input and Regenerated Output')
+        ax3.set_title('Output Bits')
+        plt.show()
 
-
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    with wave.open('rick-4k.wav', 'rb') as input:
-        with open('rick-c.hex', 'w') as output:
+    with wave.open('wav_data/genesis-iir.wav', 'rb') as input:
+        with open('cvsd_data/genesis_reencoded.hex', 'w') as output:
             pcm_to_dnvt(input, output)
 
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

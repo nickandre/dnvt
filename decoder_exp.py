@@ -1,9 +1,16 @@
-# Filtered 32kHz DNVT Decoder
+# 32 kbps CVSD Decoder for Digital Non-secure Voice Terminals with Exponential Average Filtering
+# 
+# Nick Andre and Robert Ruark
+# 2023
+
 import wave
 
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+
+#Set high to enable debug graphs
+GRAPH_DEBUG = 0
 
 def dnvt_to_pcm(data):
     gains               = []
@@ -13,6 +20,7 @@ def dnvt_to_pcm(data):
     output_filtered     = []
     time                = []
     coincidence_graph   = []
+    input_bits          = []
     index               = 0
     current_value       = 0
     coincidence_counter = 0
@@ -49,7 +57,7 @@ def dnvt_to_pcm(data):
         for i in range(4):
             bitmask = 0b1 << (3 - i)
             current_bit = 1 if bin & bitmask else 0
-
+            input_bits.append(current_bit)
             #Update coincidence counting
             if current_bit == 1:
                 one_instances += 1
@@ -107,32 +115,25 @@ def dnvt_to_pcm(data):
     imbalance = abs(one_instances - zero_instances)
     imbalance_percent = imbalance/(one_instances + zero_instances)*100
     print(f'Ones: {one_instances} Zeros: {zero_instances} Imbalance {imbalance} = {imbalance_percent} %')
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, constrained_layout=True, sharex=True)
-    ax1.plot(time, gains)
-    #ax1.ylabel('Counts')
-    #plt.xlabel('Time (seconds)')
-    # share x axis
-    ax2.plot(time, output_graph, time, output_filtered)
-    #ax2.ylabel('Counts')
-    #plt.xlabel('Time (seconds)')
-    #plt.xlim(0.0, 0.08)
-    # share x axis
-    ax3.plot(time, coincidence_graph)
-    #plt.xlim(0.0, 0.08)
-    plt.ylabel('Counts')
-    plt.xlabel('Time (seconds)')
-    ax1.set_title('Gain')
-    ax2.set_title('Output')
-    ax3.set_title('Coincidence Counter')
-    plt.show()
+    if(GRAPH_DEBUG):
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, constrained_layout=True, sharex=True)
+        ax1.plot(time, gains)
+        ax2.plot(time, output_graph, time, output_filtered)
+        ax3.step(time, input_bits, 'o--')
+        plt.ylabel('Counts')
+        plt.xlabel('Time (seconds)')
+        ax1.set_title('Gain')
+        ax2.set_title('Output')
+        ax3.set_title('Output Bits')
+        plt.show()
 
     return output
 
 
 if __name__ == '__main__':
-    with open('notinservice.hex', 'r') as f: #FDAA10255E
+    with open('cvsd_data/genesis_reencoded.hex', 'r') as f: #FDAA10255E
         data = f.read()
-    with wave.open('notinservice-rc4-filt.wav', 'wb') as f:
+    with wave.open('wav_data/genesis_redecoded_exp.wav', 'wb') as f:
         f.setsampwidth(2)
         f.setnchannels(1)
         f.setframerate(32000)
